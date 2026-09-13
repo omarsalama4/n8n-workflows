@@ -38,7 +38,6 @@ Use n8n's credential system rather than placing keys in node parameters.
 
 ## Security and Scope
 
-- No OCR workflow is included.
 - No API keys, OAuth tokens, emails, personal files, execution data, or binary assets are included.
 - These are learning and reference templates, not claims of a specific production deployment or business outcome.
 - Importing a template does not make it safe to activate. Validate its data access, downstream actions, rate limits, and error handling for your environment.
