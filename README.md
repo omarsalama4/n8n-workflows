@@ -11,6 +11,9 @@ These workflows are intentionally published as **inactive templates**. Credentia
 | `multi-channel-automation-starter.json` | Chat, form, webhook, schedule, Gmail, Sheets, Airtable, and LLM starter nodes | OpenAI, Google Sheets, Gmail, Airtable |
 | `sentiment-analysis-openai.json` | Form input, OpenAI sentiment analysis, and Sheets logging | OpenAI, Google Sheets |
 | `sentiment-analysis-ollama.json` | Local-model sentiment analysis with Sheets logging | Ollama, Google Sheets |
+| `event-rsvp-manager.json` | Webhook RSVP intake, duplicate check, Sheets tracking, and threshold notification | Google Sheets, Gmail |
+| `restaurant-waitlist-bot.json` | Telegram customer waitlist and separately routed staff actions | Telegram, OpenAI, Google Sheets |
+| `email-invitation-classifier.json` | Extract and assess invitation details for human review | Gmail, OpenAI |
 | `chat-agent-ollama.json` | Basic chat-triggered agent using a local model | Ollama |
 | `email-sheets-agent.json` | Chat agent with email, Sheets, and memory tools | OpenAI, Gmail, Google Sheets |
 | `google-drive-qdrant-ingestion.json` | Drive-triggered document ingestion into Qdrant | Google Drive, OpenAI, Qdrant |
@@ -35,6 +38,13 @@ Use n8n's credential system rather than placing keys in node parameters.
 - **Qdrant**: Qdrant API credential and a configured collection.
 - **Pinecone**: Pinecone API credential and a configured index.
 - **Airtable**: Airtable Personal Access Token credential.
+- **Telegram**: Telegram bot credential for the waitlist template.
+
+## Template-specific setup and limitations
+
+- **Event RSVP manager:** Create a sheet with columns `Name`, `email`, and `response ` (the response column includes a trailing space), and configure the same sheet in all Sheets nodes. Send a JSON POST body with `Name`, `Email`, and `response` (`yes` or `no`). The threshold defaults to 50. The webhook responds on receipt, not after storage. Add authentication and an error workflow before use. Google Sheets does not provide an atomic duplicate check: concurrent submissions can create duplicates or miss or repeat threshold alerts. This is a demonstration, not a capacity guarantee.
+- **Restaurant waitlist bot:** Create a sheet with columns `Customer_Name`, `phone number`, `party size`, `status`, `chat_id`, and `Timestamp ` (the timestamp column includes a trailing space). Set the staff gate to the numeric user ID of a trusted staff member's **private** Telegram chat; group messages cannot pass the gate. Configure the bot, model, and sheet credentials. Staff and customer tools are separated, but model output and spreadsheet operations are not transactional; review authorization, tool behavior, consent, retention, and error handling before use. Avoid real customer data until tested.
+- **Email invitation classifier:** Replace the eligibility rules and reviewer address. It sends extracted email content to the configured AI provider and sends a classification to the reviewer. No browser acceptance action is included; review invitations manually. Model classifications can be wrong and prompt injection remains possible, so do not use them as authorization for automated actions.
 
 ## Security and Scope
 

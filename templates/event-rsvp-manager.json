@@ -1,0 +1,482 @@
+{
+  "name": "Event RSVP manager",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REPLACE_WITH_RSVP_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        -16
+      ],
+      "id": "3bda7be8-52cd-4e4e-bbab-7757ab809857",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const data = item.json.body ?? item.json;\n\n  return {\n    json: {\n      name: String(data.Name ?? \"\").trim(),\n      email: String(data.Email ?? \"\").trim().toLowerCase(),\n      response: String(data.response ?? \"\").trim().toLowerCase(),\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -16
+      ],
+      "id": "f59ab63a-8e38-402f-9af8-e19606c031a8",
+      "name": "Normalize Information"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1992cee9-d335-42e2-83e7-fd837845f026",
+              "leftValue": "={{ $('Normalize Information').first().json.response }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1024,
+        112
+      ],
+      "id": "7e797299-1c0e-4183-8493-6969ea778b83",
+      "name": "Check response"
+    },
+    {
+      "parameters": {
+        "sendTo": "REPLACE_WITH_ORGANIZER_EMAIL",
+        "subject": "RSVP threshold reached",
+        "emailType": "text",
+        "message": "The configured attendance threshold was reached. Review your RSVP list.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1968,
+        80
+      ],
+      "id": "b356e466-b6b4-4683-bb4a-f251bd13160b",
+      "name": "Notify Organizer"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7bc4a003-a01d-4e87-a2df-8a36df82973d",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d5999b75-1cbc-4617-8835-50d4d1ea10da",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e47f034b-2d83-415e-b5fb-c9931d8011eb",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f358a27d-b4ef-45c2-9ab4-000000000007",
+              "leftValue": "={{ ['yes', 'no'].includes($json.response) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "40bc3be7-fc3d-4606-bb65-152a79c47313",
+      "name": "validate request"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SHEET_NAME",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        80,
+        -112
+      ],
+      "id": "644bda55-507b-438f-a2a9-85179b00eea2",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Normalize Information').first().json.email;\nreturn [{ json: { exists: $input.all().some(item => String(item.json.email ?? '').trim().toLowerCase() === email) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        -112
+      ],
+      "id": "45dbebe9-e44d-47fd-9b8a-0e735a3beef5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "93a54e0e-755f-40a1-92fd-388ac6712cb4",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        -112
+      ],
+      "id": "6daf16dd-32bc-4f5d-8202-d03fa8258c06",
+      "name": "check for redundancy"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SHEET_NAME",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Normalize Information').first().json.name }}",
+            "email": "={{ $('Normalize Information').first().json.email }}",
+            "response ": "={{ $('Normalize Information').first().json.response }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "response ",
+              "displayName": "response ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        -96
+      ],
+      "id": "71c1e13f-0559-49ce-9771-97c79246edd6",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5db12fad-1f13-4b8b-8d08-f1724bddd960",
+              "leftValue": "={{ $json.confirmed }}",
+              "rightValue": 50,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1776,
+        96
+      ],
+      "id": "1b660873-fc17-4007-bb94-b41fc7edb269",
+      "name": "Threshold check"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SHEET_NAME",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        400
+      ],
+      "id": "f358a27d-b4ef-45c2-9ab4-000000000001",
+      "name": "Read RSVP list",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { confirmed: $input.all().filter(item => String(item.json['response '] ?? '').trim().toLowerCase() === 'yes').length } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        400
+      ],
+      "id": "f358a27d-b4ef-45c2-9ab4-000000000002",
+      "name": "Count confirmed RSVPs"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Information": {
+      "main": [
+        [
+          {
+            "node": "validate request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check response": {
+      "main": [
+        [
+          {
+            "node": "Read RSVP list",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate request": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "check for redundancy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check for redundancy": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Check response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threshold check": {
+      "main": [
+        [
+          {
+            "node": "Notify Organizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read RSVP list": {
+      "main": [
+        [
+          {
+            "node": "Count confirmed RSVPs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count confirmed RSVPs": {
+      "main": [
+        [
+          {
+            "node": "Threshold check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "id": "224b2651dd604221"
+}
