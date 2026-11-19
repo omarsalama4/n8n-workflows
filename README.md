@@ -11,6 +11,7 @@ These workflows are intentionally published as **inactive templates**. Credentia
 | `multi-channel-automation-starter.json` | Chat, form, webhook, schedule, Gmail, Sheets, Airtable, and LLM starter nodes | OpenAI, Google Sheets, Gmail, Airtable |
 | `sentiment-analysis-openai.json` | Form input, OpenAI sentiment analysis, and Sheets logging | OpenAI, Google Sheets |
 | `sentiment-analysis-ollama.json` | Local-model sentiment analysis with Sheets logging | Ollama, Google Sheets |
+| [`responsible-person-sync.json`](./templates/responsible-person-sync.json) | Assignment sync, transactional replay protection, and caller access denial with synthetic data | [Local SQLite demo](./examples/responsible-person-sync) |
 | `event-rsvp-manager.json` | Webhook RSVP intake, duplicate check, Sheets tracking, and threshold notification | Google Sheets, Gmail |
 | `restaurant-waitlist-bot.json` | Telegram customer waitlist and separately routed staff actions | Telegram, OpenAI, Google Sheets |
 | `email-invitation-classifier.json` | Extract and assess invitation details for human review | Gmail, OpenAI |
