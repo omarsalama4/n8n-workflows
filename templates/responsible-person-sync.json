@@ -1,0 +1,67 @@
+{
+  "id": "synthetic-owner-sync",
+  "name": "Sync a responsible person (synthetic demo)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "9e0d7997-c172-44cb-a7bb-ecf3eb2a3954",
+      "name": "Receive assignment event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "f88d9faf-9935-49dc-b4d8-e8ac60137556",
+      "parameters": { "httpMethod": "POST", "path": "synthetic-owner-sync", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "7a8b01e2-9a8a-46e4-aa15-3c05f6595574",
+      "name": "Apply assignment transaction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 0],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 200,
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8765/assignments",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ authorization: $('Receive assignment event').first().json.headers.authorization || '' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Receive assignment event').first().json.body ?? null) }}",
+        "options": {
+          "redirect": { "redirect": { "followRedirects": false } },
+          "response": { "response": { "fullResponse": true, "neverError": true, "responseFormat": "json" } },
+          "timeout": 2500
+        }
+      }
+    },
+    {
+      "id": "b5456f8d-8ff9-45d9-8b09-74b5dc33cf1b",
+      "name": "Return transaction result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [520, -80],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('Apply assignment transaction').first().json.body) }}",
+        "options": { "responseCode": "={{ $('Apply assignment transaction').first().json.statusCode }}" }
+      }
+    },
+    {
+      "id": "017da3d5-16a6-4161-a56a-a16680f9c5da",
+      "name": "Return service unavailable",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [520, 120],
+      "parameters": { "respondWith": "json", "responseBody": "{\"error\":\"SERVICE_UNAVAILABLE\"}", "options": { "responseCode": 503 } }
+    }
+  ],
+  "connections": {
+    "Receive assignment event": { "main": [[{ "node": "Apply assignment transaction", "type": "main", "index": 0 }]] },
+    "Apply assignment transaction": { "main": [[{ "node": "Return transaction result", "type": "main", "index": 0 }], [{ "node": "Return service unavailable", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "none", "saveDataSuccessExecution": "none", "saveManualExecutions": false, "saveExecutionProgress": false }
+}
